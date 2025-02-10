@@ -68,7 +68,22 @@ function responseBuilderSimple(message, category, destination) {
       rejectParams.forEach((rejectParam) => {
         delete payload.callback_params[rejectParam];
       });
-      payload.callback_params = JSON.stringify(flattenJson(payload.callback_params));
+
+      payload.callback_params = flattenJson(payload.callback_params);
+
+      // Converts flat Map<String, any> to flat Map<String, String>
+      // Supposing that the value is never be a Object or Array or null or undefined.
+      for (const [key, value] of Object.entries(payload.callback_params)) {
+        if (value == null) {
+            delete payload.callback_params[key]; // Remove null or undefined values
+        } else if (typeof value === 'symbol') {
+            payload.callback_params[key] = value.toString(); // Handle Symbol explicitly
+        } else {
+            payload.callback_params[key] = String(value); // Convert the value to string
+        }
+      }
+
+      payload.callback_params = JSON.stringify(payload.callback_params);
     } else {
       payload.callback_params = null;
     }
